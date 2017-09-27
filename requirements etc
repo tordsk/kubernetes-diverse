@@ -15,3 +15,30 @@ GCE:
 notes:
 ANSIBLE_HOST_KEY_CHECKING=false ansible -i inventory-file  all -m ping
   to prime known hosts after reboot
+
+
+  gcloud compute instances create controller-atomic \
+      --async \
+      --boot-disk-size 200GB \
+      --can-ip-forward \
+      --image "image-1" \
+      --image-project "cultivated-snow-180307"\
+      --machine-type n1-standard-1 \
+      --private-network-ip 10.240.0.13 \
+      --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+      --subnet kubernetes \
+      --tags kubernetes-the-hard-way,controller
+
+
+      gcloud compute instances create worker-atomic \
+          --async \
+          --boot-disk-size 200GB \
+          --can-ip-forward \
+          --image "image-1" \
+          --image-project "cultivated-snow-180307"\
+          --machine-type n1-standard-1 \
+          --metadata pod-cidr=10.200.3.0/24 \
+          --private-network-ip 10.240.0.23 \
+          --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+          --subnet kubernetes \
+          --tags kubernetes-the-hard-way,worker
