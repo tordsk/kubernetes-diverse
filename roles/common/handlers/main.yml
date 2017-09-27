@@ -1,0 +1,2 @@
+- name: update_cert_index
+  shell: update-ca-certificates

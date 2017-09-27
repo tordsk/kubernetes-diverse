@@ -1,0 +1,18 @@
+General:
+  legge til ips known hosts
+  ssh key må sendes til server: under inventory file vars:
+    ansible_ssh_private_key_file=/Users/tord/.ssh/id_rsa.itas
+
+  - roles/handlers/master
+  update-ca-trust -> update-ca-certificates
+
+
+
+GCE:
+  fikse ssh: ssh -i /key.rsa tord.kloster@ip
+
+
+notes:
+ANSIBLE_HOST_KEY_CHECKING=false -i inventory-file ansible all -m ping
+  to prime known hosts after reboot
+  

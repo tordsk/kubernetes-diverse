@@ -1,0 +1,9 @@
+*.retry
+*.swp
+*_inventory
+kubeadm-inspiration
+inventory/
+pki/
+target/
+ansible.cfg
+.idea

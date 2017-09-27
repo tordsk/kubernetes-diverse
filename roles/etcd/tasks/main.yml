@@ -1,0 +1,30 @@
+- name: Download and copy etcd binaries
+  shell: curl --insecure https://storage.googleapis.com/etcd/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz | \
+         tar xzf - -C /tmp && \
+         mv "/tmp/etcd-v{{ etcd_version }}-linux-amd64/etcd" /usr/bin/etcd-{{ etcd_version }} && \
+         mv "/tmp/etcd-v{{ etcd_version }}-linux-amd64/etcdctl" /usr/bin/etcdctl-{{ etcd_version }}
+  args:
+    creates: /usr/bin/etcd-{{ etcd_version }}
+
+- name: Symlink etcd
+  file: src=/usr/bin/etcd-{{etcd_version}} dest=/usr/bin/etcd state=link
+
+- name: Symlink etcdctl
+  file: src=/usr/bin/etcdctl-{{etcd_version}} dest=/usr/bin/etcdctl state=link
+
+- name: Ensure etcd directory exists
+  file: state=directory path=/var/lib/etcd
+
+- name: Store internal IP
+  shell: hostname -I | awk '{print $1}' | xargs
+  register: host_internal_ip
+
+- name:
+  template: src=templates/etcd.service.j2 dest=/etc/systemd/system/etcd.service
+
+- name: Enable etcd
+  systemd:
+    daemon_reload=yes
+    name=etcd
+    state=restarted
+    enabled=yes

@@ -1,0 +1,81 @@
+---
+
+
+- hosts: masters
+  user: deployer
+  become: yes
+  vars:
+    HOST_COUNT: "{{ groups['all'] | length }}"
+  tasks:
+
+    - name: Ensure required processes is running
+      shell: pgrep {{ item }} | wc -l
+      with_items:
+        - dockerd
+        - kubelet
+        - etcd
+      register: process_count
+      failed_when: process_count.stdout != "1"
+
+    - name: Ensure docker interfaces is present
+      shell: ip link show docker0
+
+    - name: Ensure all kubernetes components are healthy
+      shell: /usr/bin/kubectl get componentstatuses
+      register: componentstatuses
+      failed_when: "'Unhealthy' in componentstatuses.stdout"
+
+    - name: Verify that all nodes are in Ready-state
+      shell: /usr/bin/kubectl get nodes | grep -iw 'Ready' | wc -l
+      register: ready_count
+      failed_when: ready_count.stdout != "{{ HOST_COUNT }}"
+      ignore_errors: yes
+
+    - name: Ensure addons are deployed and available
+      shell: "/usr/bin/kubectl -n kube-system get deploy {{ item }} -o json | grep '\"availableReplicas\": 1' | wc -l"
+      with_items:
+        - coredns
+        - kubernetes-dashboard
+        - tiller-deploy
+        - heapster
+        - monitoring-influxdb
+      register: matches_spec
+      failed_when: matches_spec.stdout != "1"
+
+- hosts: workers
+  user: deployer
+  become: yes
+  tasks:
+
+    - name: Ensure required processes is running
+      shell: pgrep {{ item }} | wc -l
+      with_items:
+        - dockerd
+        - kubelet
+        - flanneld
+        - kube-proxy
+      register: process_count
+      failed_when: process_count.stdout != "1"
+
+    - name: Ensure required interfaces is present
+      shell: ip link show {{ item }}
+      with_items:
+        - docker0
+        - flannel.1
+
+- hosts: localhost
+  tasks:
+    - name: Set kubectl config
+      shell: kubectl config set-cluster kubernetes-the-nais-way \
+              --certificate-authority=/Users/tord/Documents/fagarbeid/google-cloud-sdk/naisible/target/pki/ca.pem \
+              --embed-certs=true \
+              --server=https://{{ master_ip }}:6443 && \
+             kubectl config set-credentials admin \
+              --client-certificate=/Users/tord/Documents/fagarbeid/google-cloud-sdk/naisible/target/pki/admin.pem \
+              --client-key=/Users/tord/Documents/fagarbeid/google-cloud-sdk/naisible/target/pki/admin-key.pem && \
+             kubectl config set-context kubernetes-the-nais-way \
+              --cluster=kubernetes-the-nais-way \
+              --user=admin && \
+             kubectl config use-context kubernetes-the-nais-way
+      tags:
+          - debug

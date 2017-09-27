@@ -1,0 +1,62 @@
+- name: Ensure directories exist
+  file: state=directory path={{ item }}
+  with_items:
+    - /etc/pki/ca-trust/source/anchors
+    - /etc/kubernetes/kubeconfigs
+    - /etc/kubernetes/pki
+    - /etc/systemd/system/docker.service.d
+
+- name: Install proxy cert
+  copy: src=files/webproxy.crt dest=/etc/pki/ca-trust/source/anchors/webproxy.crt
+  notify: update_cert_index
+
+- name: Update certificate CA truststore
+  meta: flush_handlers
+
+- name: Add kubernetes gpg signing key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add docker gpg signing key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add sensu gpg signing key
+  apt_key:
+    url: https://sensu.global.ssl.fastly.net/apt/pubkey.gpg
+    state: present
+
+- name: Add kubernetes repository
+  apt_repository:
+    filename: kubernetes
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Add docker repository
+  apt_repository:
+    filename: docker
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu/ xenial stable amd64
+    state: present
+
+- name: Add sensu repository
+  apt_repository:
+    filename: sensu
+    repo: deb https://sensu.global.ssl.fastly.net/apt xenial main
+    state: present
+
+- name: Install required packages
+  apt: allow_unauthenticated=yes name={{ item }} state=present
+  with_items:
+    - "docker-ce={{ docker_version }}"
+    - "socat"
+    - "sensu"
+
+- name: Disable puppet agent
+  shell: /bin/puppet agent --disable
+  ignore_errors: yes
+
+- name: Disable puppet agent (preprod)
+  shell: /opt/puppet/bin/puppet agent --disable
+  ignore_errors: yes

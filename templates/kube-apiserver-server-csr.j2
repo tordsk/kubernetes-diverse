@@ -1,0 +1,18 @@
+{
+  "CN": "kube-apiserver",
+  "hosts": [
+    "127.0.0.1",
+	"{{ kubernetes_default_ip }}",
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "kubernetes.default.svc.{{ cluster_domain }}",
+    "*.{{ domain }}",
+    "{{ hostvars[groups['masters'][0]]['ansible_hostname'] }}",
+    "{{ master_ip }}"
+    {% for internal_ip in worker_list_ip %}
+    ,"{{ internal_ip }}"
+    {% endfor %}
+
+  ]
+}
