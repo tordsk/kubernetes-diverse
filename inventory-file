@@ -1,11 +1,11 @@
 [masters]
-tord.kloster@35.197.217.219
-tord.kloster@35.197.219.176
-tord.kloster@35.197.224.184
+tord.kloster@35.197.232.227
+tord.kloster@35.197.247.161
+tord.kloster@35.189.108.0
 [workers]
-tord.kloster@35.189.106.28
-tord.kloster@35.189.123.187
-tord.kloster@35.197.232.242
+tord.kloster@35.189.97.193
+tord.kloster@35.189.76.121
+tord.kloster@35.197.211.152
 
 
 [all:vars]

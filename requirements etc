@@ -13,6 +13,5 @@ GCE:
 
 
 notes:
-ANSIBLE_HOST_KEY_CHECKING=false -i inventory-file ansible all -m ping
+ANSIBLE_HOST_KEY_CHECKING=false ansible -i inventory-file  all -m ping
   to prime known hosts after reboot
-  
